@@ -36,10 +36,6 @@ class FlightController:
         if len(channels) != 8:
             raise ValueError("RC command must contain 8 values.")
         self.board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
-    
-    def close(self):
-        """Closes the serial connection."""
-        self.board.ser.close()
 
 
 fc = FlightController()
