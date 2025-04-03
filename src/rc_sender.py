@@ -21,7 +21,7 @@ def send_rc_commands(board, shared_rc_data):
 
 if __name__ == "__main__":
     # Initialize the MSPy board connection
-    board = MSPy('/dev/ttyUSB5', 115200)
+    board = MSPy('/dev/ttyACM0', 115200)
     board.connect()
     imu_data = imu_reader.read_imu(board)
     # Shared RC data
