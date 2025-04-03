@@ -4,7 +4,7 @@ import serial
 from yamspy import MSPy
 
 class FlightController:
-    def __init__(self, serial_port="/dev/ttyACM1", baudrate=115200):
+    def __init__(self, serial_port="/dev/ttyACM2", baudrate=115200):
         try:
             self.serial_port = serial_port
             self.baudrate = baudrate
