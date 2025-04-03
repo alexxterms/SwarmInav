@@ -15,19 +15,19 @@ class FlightController:
         if self.board:
             self.board.send_RAW_RC(rc_data)
 
-    def read_imu(board):
-        if board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU'], data=[]):
-            dataHandler = board.receive_msg()
-            board.process_recv_data(dataHandler)
+    def read_imu(self):
+        if self.board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU'], data=[]):
+            dataHandler = self.board.receive_msg()
+            self.board.process_recv_data(dataHandler)
 
             # Print raw response for debugging
             print(f"📡 Raw IMU Response: {dataHandler}")
 
             # Check if SENSOR_DATA has the required IMU values
-            if 'accX' in board.SENSOR_DATA and 'gyroX' in board.SENSOR_DATA:
+            if 'accX' in self.board.SENSOR_DATA and 'gyroX' in self.board.SENSOR_DATA:
                 return (
-                    board.SENSOR_DATA['accX'], board.SENSOR_DATA['accY'], board.SENSOR_DATA['accZ'],
-                    board.SENSOR_DATA['gyroX'], board.SENSOR_DATA['gyroY'], board.SENSOR_DATA['gyroZ']
+                    self.board.SENSOR_DATA['accX'], self.board.SENSOR_DATA['accY'], self.board.SENSOR_DATA['accZ'],
+                    self.board.SENSOR_DATA['gyroX'], self.board.SENSOR_DATA['gyroY'], self.board.SENSOR_DATA['gyroZ']
                 )
         return None
 
