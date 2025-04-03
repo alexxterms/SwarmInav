@@ -40,9 +40,9 @@ with MSPy(device=serial_port, loglevel='DEBUG', baudrate=115200) as board:
             elif roll_angle < -10:
                 orientation.append("Left Wing Down")
 
-            if gyro_z > 5:
+            if gyro_z > -5:
                 orientation.append("Turning Right")
-            elif gyro_z < -5:
+            elif gyro_z < 5:
                 orientation.append("Turning Left")
 
             if acc_z > 1.1:
