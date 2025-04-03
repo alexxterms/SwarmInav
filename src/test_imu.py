@@ -25,7 +25,7 @@ with MSPy(device=serial_port, loglevel='DEBUG', baudrate=115200) as board:
 
             # Compute Roll & Pitch angles
             roll_angle = math.degrees(math.atan2(acc_y, acc_z))
-            pitch_angle = math.degrees(math.atan2(-acc_x, math.sqrt(acc_y**2 + acc_z**2)))
+            pitch_angle = math.degrees(math.atan2(acc_x, math.sqrt(acc_y**2 + acc_z**2)))
 
             # Determine Orientation
             orientation = []
