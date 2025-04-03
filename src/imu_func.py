@@ -1,21 +1,57 @@
-def scale_imu_data(imu_data):
+import math
+
+def scale_imu_data(raw_data):
     """Scales raw IMU data to meaningful values."""
-    acc_x, acc_y, acc_z = [val / 512.0 for val in imu_data["accelerometer"]]
-    gyro_x, gyro_y, gyro_z = [val * (4.0 / 16.4) for val in imu_data["gyroscope"]]
-    mag_x, mag_y, mag_z = imu_data["magnetometer"]
+    raw_accel = raw_data['accelerometer']
+    raw_gyro = raw_data['gyroscope']
+    raw_mag = raw_data['magnetometer']
+
+    # Convert raw accelerometer data to G-force
+    acc_x, acc_y, acc_z = [val / 512.0 for val in raw_accel]
+
+    # Convert raw gyroscope data to degrees per second
+    gyro_x = raw_gyro[0] * (4.0 / 16.4)
+    gyro_y = raw_gyro[1] * (4.0 / 16.4)
+    gyro_z = raw_gyro[2] * (4.0 / 16.4)
 
     return {
         "accelerometer": [acc_x, acc_y, acc_z],
         "gyroscope": [gyro_x, gyro_y, gyro_z],
-        "magnetometer": [mag_x, mag_y, mag_z]
+        "magnetometer": raw_mag
     }
 
 def determine_orientation(scaled_data):
-    """Determines orientation based on gyroscope data."""
-    gyro_x, gyro_y, gyro_z = scaled_data["gyroscope"]
-    
-    roll = "Rolling Left" if gyro_x < -0.1 else "Rolling Right" if gyro_x > 0.1 else "Stable"
-    pitch = "Pitching Down" if gyro_y < -0.1 else "Pitching Up" if gyro_y > 0.1 else "Stable"
-    yaw = "Yawing Left" if gyro_z < -0.1 else "Yawing Right" if gyro_z > 0.1 else "Stable"
+    """Determines the flight orientation based on IMU readings."""
+    acc_x, acc_y, acc_z = scaled_data["accelerometer"]
+    gyro_z = scaled_data["gyroscope"][2]  # Only need z-axis for yaw/turning
 
-    return [roll, pitch, yaw]
+    roll_angle = math.degrees(math.atan2(acc_y, acc_z))
+    pitch_angle = math.degrees(math.atan2(acc_x, math.sqrt(acc_y**2 + acc_z**2)))
+
+    orientation = []
+
+    if pitch_angle > 10:
+        orientation.append("Nose Up")
+    elif pitch_angle < -10:
+        orientation.append("Nose Down")
+
+    if roll_angle > 10:
+        orientation.append("Right Wing Down")
+    elif roll_angle < -10:
+        orientation.append("Left Wing Down")
+
+    if gyro_z < -5:
+        orientation.append("Turning Right")
+    elif gyro_z > 5:
+        orientation.append("Turning Left")
+
+    if acc_z > 1.1:
+        orientation.append("Climbing")
+    elif acc_z < 0.9:
+        orientation.append("Descending")
+
+    if not orientation:
+        orientation.append("Level Flight")
+
+    return orientation
+
