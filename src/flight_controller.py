@@ -4,14 +4,12 @@ import serial
 from yamspy import MSPy
 
 class FlightController:
-    def __init__(self, serial_port="/dev/ttyACM2", baudrate=115200):
+    def __init__(self, serial_port, baudrate=115200):
         try:
             self.serial_port = serial_port
             self.baudrate = baudrate
 
-            # Check if the port is already in use
-            self.ser = serial.Serial(serial_port, baudrate, timeout=1)
-            self.ser.close()  # Close immediately to allow MSPy to open it properly
+            
 
             # Initialize MSPy
             self.board = MSPy(device=serial_port, loglevel='DEBUG', baudrate=baudrate)
