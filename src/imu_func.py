@@ -1,8 +1,8 @@
 import math
 
 def get_imu_data(fc):
-    imu_data = fc.read_imu()  # Calls the read_imu function in FlightController
-    return imu_data
+
+    return fc.read_imu()
 
 def scale_imu_data(imu_data):
     """Scales accelerometer, gyroscope, and magnetometer values for better readability."""
