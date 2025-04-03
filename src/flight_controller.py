@@ -1,6 +1,5 @@
 import time
 import struct
-
 from yamspy import MSPy
 from imu_func import scale_imu_data, determine_orientation  # ✅ Import processing functions
 
@@ -8,13 +7,12 @@ class FlightController:
     def __init__(self, serial_port="/dev/ttyACM2", baudrate=115200):
         self.board = MSPy(device=serial_port, loglevel='DEBUG', baudrate=baudrate)
 
-        if not self.board.ser.is_open:  # ✅ Ensure serial port is open
-            self.board.ser.open()
+       
 
     def read_imu(self):
         """Requests and reads raw IMU data from the flight controller."""
-        if not self.board.ser.is_open:
-            raise ConnectionError("Serial port is not open!")
+        
+      
 
         if self.board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
             data_length = 18
@@ -37,6 +35,7 @@ class FlightController:
         if len(channels) != 8:
             raise ValueError("RC command must contain 8 values.")
         self.board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
+
 
 fc = FlightController()
 
