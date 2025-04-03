@@ -11,7 +11,7 @@ class FlightController:
             "magnetometer": [0, 0, 0]
         }
     
-    def read_imu(self):
+    def get_imu_data(self):
         """Requests and reads raw IMU data from the flight controller."""
         if self.board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
             data_length = 18
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     fc = FlightController()
     try:
         while True:
-            imu_data = fc.read_imu()
+            imu_data = fc.get_imu_data()
             print(f"📡 IMU Data: {imu_data}")
             time.sleep(0.1)
     except KeyboardInterrupt:
