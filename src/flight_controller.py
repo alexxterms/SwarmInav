@@ -34,5 +34,5 @@ with MSPy(device=serial_port, baudrate=baudrate) as board:
         if current_time - last_rc_time >= rc_interval:
             rc_values = [1500] * 8  # Replace with your logic
             board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
-            print("RC sent")
+            
             last_rc_time = current_time
