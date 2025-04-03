@@ -8,7 +8,7 @@ class IMUReader:
         self.fc = fc
 
     def read_imu(self):
-        imu_data = self.fc.get_imu_data()
+        imu_data = self.fc.read_imu()
         if imu_data:
             accel, gyro, mag, orientation = imu_data
             print(f"\U0001F4E1 Processed IMU Data:")
