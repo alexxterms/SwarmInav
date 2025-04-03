@@ -79,5 +79,5 @@ with MSPy(device=imu_port, baudrate=baudrate) as imu_board, MSPy(device=rc_port,
         if current_time - last_rc_time >= rc_interval:
             rc_values = [1500] * 8  # Replace with actual logic
             rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
-            print("RC sent")
+            
             last_rc_time = current_time
