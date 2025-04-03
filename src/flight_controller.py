@@ -3,7 +3,7 @@ import struct
 from yamspy import MSPy
 
 # Setup
-serial_port = "/dev/ttyACM2"
+serial_port = "/dev/ttyUSB0"
 baudrate = 115200
 
 with MSPy(device=serial_port, baudrate=baudrate) as board:
