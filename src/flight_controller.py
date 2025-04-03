@@ -2,6 +2,7 @@ import time
 import struct
 import threading
 from yamspy import MSPy
+from imu_func import scale_imu_data, determine_orientation
 
 SERIAL_PORT = "/dev/ttyACM2"
 BAUDRATE = 115200
@@ -13,7 +14,7 @@ with MSPy(device=SERIAL_PORT, baudrate=BAUDRATE) as board:
     else:
         raise Exception("❌ Failed to open serial port")
 
-    # Function to read IMU data
+    # Function to read and process IMU data
     def read_imu_loop():
         while True:
             try:
@@ -21,15 +22,25 @@ with MSPy(device=SERIAL_PORT, baudrate=BAUDRATE) as board:
                     dataHandler = board.receive_msg()
                     board.process_recv_data(dataHandler)
 
-                    imu_data = {
+                    raw_imu_data = {
                         "accelerometer": board.SENSOR_DATA['accelerometer'],
                         "gyroscope": board.SENSOR_DATA['gyroscope'],
                         "magnetometer": board.SENSOR_DATA['magnetometer']
                     }
-                    print("IMU Data:", imu_data)
+
+                    # Scale IMU data
+                    scaled_data = scale_imu_data(raw_imu_data)
+
+                    # Determine orientation
+                    orientation = determine_orientation(scaled_data)
+
+                    print("IMU Data:", scaled_data)
+                    print("Orientation:", ", ".join(orientation))
+                    
             except Exception as e:
                 print(f"Error reading IMU data: {e}")
-            time.sleep(0.1)  # Adjust rate
+            
+            time.sleep(0.1)  # Adjust rate if needed
 
     # Function to send RC commands
     def send_rc_loop():
@@ -39,7 +50,8 @@ with MSPy(device=SERIAL_PORT, baudrate=BAUDRATE) as board:
                 board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
             except Exception as e:
                 print(f"Error sending RC command: {e}")
-            time.sleep(0.1)  # Adjust rate
+            
+            time.sleep(0.1)  # Adjust rate if needed
 
     # Start both tasks in separate threads
     imu_thread = threading.Thread(target=read_imu_loop)
