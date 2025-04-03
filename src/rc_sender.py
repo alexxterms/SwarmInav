@@ -21,7 +21,8 @@ def send_rc_commands(fc, shared_rc_data):
 if __name__ == "__main__":
     # Initialize the flight controller
     fc = FlightController()
-
+    imu_data = fc.read_imu()
+    print{f"IMU DATA: {imu_data}"}
     # Shared memory for RC commands
     shared_rc_data = Array('i', [1500, 1500, 1000, 1000, 1000, 1000, 1000, 1000])
 

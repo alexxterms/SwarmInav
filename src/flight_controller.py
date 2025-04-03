@@ -19,6 +19,7 @@ class FlightController:
         """Read IMU data from the flight controller."""
         if self.board:
             response = self.board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU'], data=[])
+            print(f"📡 Raw IMU Response: {response}") 
             if response:
                 return response['data']  # Adjust based on your IMU data format
         return None
