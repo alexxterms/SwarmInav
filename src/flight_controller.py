@@ -1,5 +1,7 @@
 import time
 import struct
+from imu_func import get_imu_data, scale_imu_data, determine_orientation
+
 from yamspy import MSPy
 
 class FlightController:
@@ -38,4 +40,17 @@ class FlightController:
     def close(self):
         """Closes the serial connection."""
         self.board.ser.close()
+
+
+fc = FlightController()
+
+while True:
+    imu_data = get_imu_data(fc)
+    scaled_data = scale_imu_data(imu_data)
+    orientation = determine_orientation(scaled_data)
+
+    print("IMU Data:", scaled_data)
+    print("Orientation:", ", ".join(orientation))
+
+    time.sleep(0.1)
 

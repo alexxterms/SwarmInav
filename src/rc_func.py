@@ -1,5 +1,5 @@
 from flight_controller import FlightController
-from imu_reader import IMUReader
+from imu_func import IMUReader
 import time
 
 fc = FlightController("/dev/ttyACM2")  # Create only ONE instance
