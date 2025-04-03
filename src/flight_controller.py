@@ -1,16 +1,29 @@
 import time
 import struct
+import serial
 from yamspy import MSPy
 
 class FlightController:
     def __init__(self, serial_port="/dev/ttyACM1", baudrate=115200):
-       
-        self.board = MSPy(device=serial_port, loglevel='DEBUG', baudrate=baudrate)
-        self.imu_data = {
-            "accelerometer": [0, 0, 0],
-            "gyroscope": [0, 0, 0],
-            "magnetometer": [0, 0, 0]
-        }
+        try:
+            self.serial_port = serial_port
+            self.baudrate = baudrate
+
+            # Check if the port is already in use
+            self.ser = serial.Serial(serial_port, baudrate, timeout=1)
+            self.ser.close()  # Close immediately to allow MSPy to open it properly
+
+            # Initialize MSPy
+            self.board = MSPy(device=serial_port, loglevel='DEBUG', baudrate=baudrate)
+            
+            self.imu_data = {
+                "accelerometer": [0, 0, 0],
+                "gyroscope": [0, 0, 0],
+                "magnetometer": [0, 0, 0]
+            }
+        except serial.SerialException as e:
+            print(f"❌ ERROR: Could not open serial port {serial_port}. Make sure it's correct and not in use.")
+            raise e
     
     def get_imu_data(self):
         """Requests and reads raw IMU data from the flight controller."""
@@ -43,5 +56,7 @@ class FlightController:
     
     def close(self):
         """Closes the serial connection."""
-        self.board.ser.close()
+        if self.board.ser.is_open:
+            self.board.ser.close()
+            print("🔌 Serial port closed.")
 
