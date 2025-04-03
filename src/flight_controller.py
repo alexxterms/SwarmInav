@@ -4,7 +4,7 @@ from yamspy import MSPy
 
 class FlightController:
     def __init__(self, serial_port="/dev/ttyACM1", baudrate=115200):
-        self.board.ser.open()
+       
         self.board = MSPy(device=serial_port, loglevel='DEBUG', baudrate=baudrate)
         self.imu_data = {
             "accelerometer": [0, 0, 0],
