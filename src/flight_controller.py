@@ -1,5 +1,6 @@
 import time
 import math
+import struct
 from imu_func import scale_imu_data, determine_orientation
 from yamspy import MSPy
 
