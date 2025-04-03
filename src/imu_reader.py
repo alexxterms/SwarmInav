@@ -4,6 +4,7 @@ from flight_controller import FlightController
 
 class IMUReader:
     def __init__(self, fc: FlightController):
+       
         self.fc = fc
 
     def read_imu(self):
@@ -49,10 +50,3 @@ class IMUReader:
             print("-" * 50)
         return imu_data
 
-if __name__ == "__main__":
-    fc = FlightController("/dev/ttyACM1")
-    imu_reader = IMUReader(fc)
-    
-    while True:
-        imu_reader.read_imu()
-        time.sleep(0.1)
