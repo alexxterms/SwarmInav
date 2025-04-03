@@ -1,56 +1,73 @@
 import time
 import struct
 from yamspy import MSPy
-from imu_func import scale_imu_data, determine_orientation
 
 class FlightController:
     def __init__(self, serial_port="/dev/ttyACM2", baudrate=115200):
         self.serial_port = serial_port
         self.baudrate = baudrate
 
-    def read_imu(self):
-        """Fetches raw IMU data from the flight controller."""
+    def connect(self):
+        """Connects to the flight controller."""
         try:
             with MSPy(device=self.serial_port, baudrate=self.baudrate) as board:
-                if board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
-                    dataHandler = board.receive_msg()
-                    board.process_recv_data(dataHandler)  # Updates SENSOR_DATA
+                # Check if board is connected
+                if board.connect(trials=3):
+                    print("✅ Serial port connected successfully")
+                    return board
+                else:
+                    raise Exception("❌ Failed to open serial port")
+        except Exception as e:
+            print(f"Error connecting to FC: {e}")
+            return None
 
-                    return {
-                        "accelerometer": board.SENSOR_DATA['accelerometer'],
-                        "gyroscope": board.SENSOR_DATA['gyroscope'],
-                        "magnetometer": board.SENSOR_DATA['magnetometer']
-                    }
+    def read_imu(self, board):
+        """Fetches raw IMU data from the flight controller."""
+        try:
+            if board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
+                dataHandler = board.receive_msg()
+                board.process_recv_data(dataHandler)  # Updates SENSOR_DATA
 
+                return {
+                    "accelerometer": board.SENSOR_DATA['accelerometer'],
+                    "gyroscope": board.SENSOR_DATA['gyroscope'],
+                    "magnetometer": board.SENSOR_DATA['magnetometer']
+                }
         except Exception as e:
             print(f"Error reading IMU data: {e}")
             return None
 
-    def send_rc_command(self, channels):
+    def send_rc_command(self, board, channels):
         """Sends RC commands to the flight controller."""
         try:
-            with MSPy(device=self.serial_port, loglevel='DEBUG', baudrate=self.baudrate) as board:
-                if len(channels) != 8:
-                    raise ValueError("RC command must contain 8 values.")
-                board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
-
+            if len(channels) != 8:
+                raise ValueError("RC command must contain 8 values.")
+            board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
         except Exception as e:
             print(f"Error sending RC command: {e}")
 
 # Example usage
 fc = FlightController()
 
-while True:
-    try:
-        raw_imu_data = fc.read_imu()
-        if raw_imu_data:
-            scaled_data = scale_imu_data(raw_imu_data)
-            orientation = determine_orientation(scaled_data)
+# Connect to FC once
+board = fc.connect()
 
-            print("IMU Data:", scaled_data)
-            print("Orientation:", ", ".join(orientation))
+if board:
+    while True:
+        try:
+            # Read IMU data
+            raw_imu_data = fc.read_imu(board)
+            if raw_imu_data:
+                # You can scale and process the IMU data here if needed
+                print("IMU Data:", raw_imu_data)
 
-    except Exception as e:
-        print(f"Error: {e}")
+            # Example: Sending RC command (8 channels, placeholder values)
+            channels = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
+            fc.send_rc_command(board, channels)
 
-    time.sleep(0.1)  # Adjust update rate if needed (100ms)
+        except Exception as e:
+            print(f"Error: {e}")
+
+        time.sleep(0.1)  # Adjust update rate if needed (100ms)
+else:
+    print("Failed to connect to FC.")
