@@ -1,11 +1,11 @@
 from yamspy import MSPy
 
-serial_port = "/dev/ttyACM1"
+serial_port = "/dev/ttyACM2"
 
 with MSPy(device=serial_port, loglevel='DEBUG', baudrate=115200) as board:
-    if board.send_RAW_msg(MSPy.MSPCodes['MSP_ALTITUDE'], data=[]):
-        dataHandler = board.receive_msg()
-        board.process_recv_data(dataHandler)
+    board.fast_read_imu()
 
-        print("📡 Attitude Response:", dataHandler)
-        print(board.SENSOR_DATA['altitude'])
+    print("📡 IMU Data:")
+    print(f"Accelerometer: {board.SENSOR_DATA['accelerometer']}")
+    print(f"Gyroscope: {board.SENSOR_DATA['gyroscope']}")
+    print(f"Magnetometer: {board.SENSOR_DATA['magnetometer']}")
