@@ -11,7 +11,7 @@ class FlightController:
     def read_imu(self):
         """Fetches raw IMU data from the flight controller."""
         try:
-            with MSPy(device=self.serial_port, loglevel='DEBUG', baudrate=self.baudrate) as board:
+            with MSPy(device=self.serial_port, baudrate=self.baudrate) as board:
                 if board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
                     dataHandler = board.receive_msg()
                     board.process_recv_data(dataHandler)  # Updates SENSOR_DATA
