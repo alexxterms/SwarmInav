@@ -6,43 +6,51 @@ class FlightController:
     def __init__(self, serial_port="/dev/ttyACM2", baudrate=115200):
         self.serial_port = serial_port
         self.baudrate = baudrate
+        self.board = None  # To hold the board object
 
     def connect(self):
         """Connects to the flight controller."""
         try:
             with MSPy(device=self.serial_port, baudrate=self.baudrate) as board:
-                # Check if board is connected
                 if board.connect(trials=3):
                     print("✅ Serial port connected successfully")
-                    return board
+                    self.board = board  # Store the board for later use
                 else:
                     raise Exception("❌ Failed to open serial port")
         except Exception as e:
             print(f"Error connecting to FC: {e}")
-            return None
+            self.board = None
 
-    def read_imu(self, board):
+    def read_imu(self):
         """Fetches raw IMU data from the flight controller."""
+        if self.board is None:
+            print("❌ Board not connected!")
+            return None
+        
         try:
-            if board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
-                dataHandler = board.receive_msg()
-                board.process_recv_data(dataHandler)  # Updates SENSOR_DATA
+            if self.board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
+                dataHandler = self.board.receive_msg()
+                self.board.process_recv_data(dataHandler)  # Updates SENSOR_DATA
 
                 return {
-                    "accelerometer": board.SENSOR_DATA['accelerometer'],
-                    "gyroscope": board.SENSOR_DATA['gyroscope'],
-                    "magnetometer": board.SENSOR_DATA['magnetometer']
+                    "accelerometer": self.board.SENSOR_DATA['accelerometer'],
+                    "gyroscope": self.board.SENSOR_DATA['gyroscope'],
+                    "magnetometer": self.board.SENSOR_DATA['magnetometer']
                 }
         except Exception as e:
             print(f"Error reading IMU data: {e}")
             return None
 
-    def send_rc_command(self, board, channels):
+    def send_rc_command(self, channels):
         """Sends RC commands to the flight controller."""
+        if self.board is None:
+            print("❌ Board not connected!")
+            return
+        
         try:
             if len(channels) != 8:
                 raise ValueError("RC command must contain 8 values.")
-            board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
+            self.board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *channels))
         except Exception as e:
             print(f"Error sending RC command: {e}")
 
@@ -50,20 +58,20 @@ class FlightController:
 fc = FlightController()
 
 # Connect to FC once
-board = fc.connect()
+fc.connect()
 
-if board:
+if fc.board:
     while True:
         try:
             # Read IMU data
-            raw_imu_data = fc.read_imu(board)
+            raw_imu_data = fc.read_imu()
             if raw_imu_data:
                 # You can scale and process the IMU data here if needed
                 print("IMU Data:", raw_imu_data)
 
             # Example: Sending RC command (8 channels, placeholder values)
             channels = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
-            fc.send_rc_command(board, channels)
+            fc.send_rc_command(channels)
 
         except Exception as e:
             print(f"Error: {e}")
