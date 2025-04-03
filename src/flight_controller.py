@@ -13,7 +13,7 @@ with MSPy(device=serial_port, baudrate=baudrate) as board:
         raise Exception("❌ Failed to connect")
 
     imu_interval = 0.02   # 50Hz (every 20 ms)
-    rc_interval = 0.05    # 20Hz (every 50 ms)
+    rc_interval = 0.1    # 20Hz (every 50 ms)
 
     last_imu_time = time.time()
     last_rc_time = time.time()
