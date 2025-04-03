@@ -25,6 +25,7 @@ class FlightController:
 
             # Check if SENSOR_DATA has the required IMU values
             if 'accX' in self.board.SENSOR_DATA and 'gyroX' in self.board.SENSOR_DATA:
+                print(self.board.SENSOR_DATA['gyroX'])
                 return (
                     self.board.SENSOR_DATA['accX'], self.board.SENSOR_DATA['accY'], self.board.SENSOR_DATA['accZ'],
                     self.board.SENSOR_DATA['gyroX'], self.board.SENSOR_DATA['gyroY'], self.board.SENSOR_DATA['gyroZ']
