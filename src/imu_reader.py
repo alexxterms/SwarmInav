@@ -1,17 +1,16 @@
 "ALL THE FUNCTIONS RELATED TO IMU ARE IN THIS FILE"
 
-from yamspy import MSPy
+import time
 
-def read_imu(board):
-    """
-    Reads IMU data from iNav using MSP_RAW_IMU.
-    """
-    board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU'], data=[])
+def read_imu_continuous(fc):
+    """Continuously reads IMU data from the flight controller."""
+    try:
+        while True:
+            imu_data = fc.read_imu()
+            if imu_data:
+                acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = imu_data
+                print(f"📡 IMU - Acc: ({acc_x}, {acc_y}, {acc_z}) | Gyro: ({gyro_x}, {gyro_y}, {gyro_z})")
+            time.sleep(0.1)  # Adjust as needed
+    except KeyboardInterrupt:
+        print("⏹️ Stopping IMU readings.")
 
-    response = board.receive_msg()
-    if response and response.get('cmd') == MSPy.MSPCodes['MSP_RAW_IMU']:
-        acc_x, acc_y, acc_z = response['data'][:3]  # Extract accelerometer values
-        gyro_x, gyro_y, gyro_z = response['data'][3:6]  # Extract gyroscope values
-        return acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-    
-    return None  # Return None if no data is received
