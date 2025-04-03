@@ -1,4 +1,5 @@
 import time
+import math
 from yamspy import MSPy
 
 serial_port = "/dev/ttyACM1"
@@ -14,38 +15,50 @@ with MSPy(device=serial_port, loglevel='DEBUG', baudrate=115200) as board:
             raw_gyro = board.SENSOR_DATA['gyroscope']
             raw_mag = board.SENSOR_DATA['magnetometer']
 
-            # Convert accelerometer to Gs (assuming MPU6050, /512)
-            accel = [val / 512 for val in raw_accel]
+            # Process Accelerometer (Convert to G-force)
+            acc_x, acc_y, acc_z = [val / 512.0 for val in raw_accel]
 
-            # Convert gyroscope to degrees/sec (assuming *4/16.4 scaling)
-            gyro = [val * (4 / 16.4) for val in raw_gyro]
+            # Process Gyroscope (Convert to degrees/sec)
+            gyro_x = raw_gyro[0] * (4.0 / 16.4)
+            gyro_y = raw_gyro[1] * (4.0 / 16.4)
+            gyro_z = raw_gyro[2] * (4.0 / 16.4)
 
-            # Keep magnetometer raw for now
-            mag = raw_mag  
+            # Compute Roll & Pitch angles
+            roll_angle = math.degrees(math.atan2(acc_y, acc_z))
+            pitch_angle = math.degrees(math.atan2(-acc_x, math.sqrt(acc_y**2 + acc_z**2)))
 
-            # Print raw and processed data
-            print(f"📡 Raw IMU Data: {raw_accel}")
-            print(f"📡 Processed Accelerometer (G): {accel}")
-            print(f"📡 Processed Gyroscope (deg/sec): {gyro}")
-            print(f"📡 Magnetometer: {mag}")
+            # Determine Orientation
+            orientation = []
+
+            if pitch_angle > 10:
+                orientation.append("Nose Up")
+            elif pitch_angle < -10:
+                orientation.append("Nose Down")
+
+            if roll_angle > 10:
+                orientation.append("Right Wing Down")
+            elif roll_angle < -10:
+                orientation.append("Left Wing Down")
+
+            if gyro_z > 5:
+                orientation.append("Turning Right")
+            elif gyro_z < -5:
+                orientation.append("Turning Left")
+
+            if acc_z > 1.1:
+                orientation.append("Climbing")
+            elif acc_z < 0.9:
+                orientation.append("Descending")
+
+            if not orientation:
+                orientation.append("Level Flight")
+
+            # Print Processed IMU Data
+            print("📡 Processed IMU Data:")
+            print(f"Accelerometer (G): [{acc_x:.3f}, {acc_y:.3f}, {acc_z:.3f}]")
+            print(f"Gyroscope (deg/sec): [{gyro_x:.3f}, {gyro_y:.3f}, {gyro_z:.3f}]")
+            print(f"Magnetometer: {raw_mag}")
+            print(f"📡 Orientation: {', '.join(orientation)}")
             print("-" * 50)
 
-            # Orientation Logic
-            if accel[0] > 0.5:
-                print("↩️ Tilting LEFT (Left Wing Down)")
-            elif accel[0] < -0.5:
-                print("↪️ Tilting RIGHT (Right Wing Down)")
-
-            if accel[1] > 0.5:
-                print("⬆️ Nose UP")
-            elif accel[1] < -0.5:
-                print("⬇️ Nose DOWN")
-
-            if accel[2] > 0.8:
-                print("🚀 Upright (Normal Level Flight)")
-            elif accel[2] < 0.3:
-                print("🛬 Laying Flat or Inverted")
-
-            print("=" * 50)
-
-        time.sleep(0.2)  # Adjust update rate if needed (200ms)
+        time.sleep(0.1)  # Adjust update rate if needed (100ms)
