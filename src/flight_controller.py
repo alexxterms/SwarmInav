@@ -1,7 +1,7 @@
 from yamspy import MSPy
 
 class FlightController:
-    def __init__(self, port='/dev/ttyACM0', baudrate=115200):
+    def __init__(self, port='/dev/ttyACM1', baudrate=115200):
         try:
             self.board = MSPy(port, baudrate)
             self.board.connect()
