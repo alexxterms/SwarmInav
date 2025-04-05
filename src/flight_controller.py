@@ -5,8 +5,8 @@ from yamspy import MSPy
 from imu_func import scale_imu_data, determine_orientation  # ✅ Import from imu_func.py
 
 # UART Configuration
-imu_port = "/dev/ttyACM4"  # IMU on UART0
-rc_port = "/dev/ttyUSB2"   # RC control on UART1
+imu_port = "/dev/ttyACM"  # IMU on UART0
+rc_port = "/dev/ttyUSB0"   # RC control on UART1
 baudrate = 115200
 
 # Throw Detection Parameters
@@ -57,9 +57,11 @@ with MSPy(device=imu_port, baudrate=baudrate) as imu_board, MSPy(device=rc_port,
 
     imu_interval = 0.02   # 50Hz (every 20 ms)
     alt_interval = 0.1    # 10Hz (every 100 ms)
+    rc_interval = 0.1     # 10Hz (every 100 ms)
 
     last_imu_time = time.time()
     last_alt_time = time.time()
+    last_rc_time = time.time()
 
     while True:
         current_time = time.time()
@@ -109,9 +111,11 @@ with MSPy(device=imu_port, baudrate=baudrate) as imu_board, MSPy(device=rc_port,
 
             last_alt_time = current_time
 
-        # Send RC commands continuously
-        with rc_lock:
-            rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
-            print("RC command sent")
+        # Send RC commands at 10Hz
+        if current_time - last_rc_time >= rc_interval:
+            with rc_lock:
+                rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
+                print("RC command sent")
+            last_rc_time = current_time
 
         time.sleep(0.01)  # 10ms delay for polling

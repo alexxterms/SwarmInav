@@ -1,71 +1,50 @@
-"""read_altitude.py: Reboot your flight controller (Betaflight)
-
-Copyright (C) 2020 Ricardo de Azambuja
-
-This file is part of YAMSPy.
-
-YAMSPy is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-YAMSPy is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with YAMSPy.  If not, see <https://www.gnu.org/licenses/>.
-
-Acknowledgement:
-This work was possible thanks to the financial support from IVADO.ca (postdoctoral scholarship 2019/2020).
-
-Disclaimer (adapted from Wikipedia):
-None of the authors, contributors, supervisors, administrators, employers, friends, family, vandals, or anyone else 
-connected (or not) with this project, in any way whatsoever, can be made responsible for your use of the information (code) 
-contained or linked from here.
-"""
+import time
+import struct
+import threading
 from yamspy import MSPy
 
+# UART Configuration
+rc_port = "/dev/ttyUSB4"   # RC control on UART
+baudrate = 115200
 
+# Shared RC command array
+rc_values = [1500] * 8
+rc_lock = threading.Lock()
 
-#
-# On Linux, your serial port will probably be something like
-# /dev/ttyACM0 or /dev/ttyS0 or the same names with numbers different from 0
-#
-# On Windows, I would expect it to be 
-# COM1 or COM2 or COM3...
-#
-# This library uses pyserial, so if you have more questions try to check its docs:
-# https://pyserial.readthedocs.io/en/latest/shortintro.html
-#
-#
+# RC Logic Function to modify shared RC values
+def rc_logic():
+    global rc_values
+    while True:
+        with rc_lock:
+            rc_values[2] = 900    # Throttle (CH3)
+            rc_values[4] = 2000     # Arm (CH5)
+            rc_values[5] = 1000    # Position Hold (CH6)
+            rc_values[6] = 2000    # CH7 always ON
+        time.sleep(0.05)  # Update shared values at 20Hz (optional tuning)
 
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description='Command line example.')
-    parser.add_argument('--serialport', action='store', default="/dev/ttyACM3", help='serial port')
-    arguments = parser.parse_args()
-    serial_port = arguments.serialport
+# Open connection using "with" to ensure proper handling
+with MSPy(device=rc_port, baudrate=baudrate) as rc_board:
+    if rc_board.connect(trials=3):
+        print("✅ UART connected successfully")
+    else:
+        raise Exception("❌ Failed to connect to serial port")
 
-    with MSPy(device=serial_port, loglevel='DEBUG', baudrate=115200) as board:
-        # Read info from the FC
-        # Please, pay attention to the way it works:
-        # 1. Message is sent: MSP_ALTITUDE without any payload (data=[])
-        if board.send_RAW_msg(MSPy.MSPCodes['MSP_ALTITUDE'], data=[]):
-            # 2. Response msg from the flight controller is received
-            dataHandler = board.receive_msg()
-            # 3. The msg is parsed
-            board.process_recv_data(dataHandler)
-            # 4. After the parser, the instance is populated.
-            # In this example, SENSOR_DATA has its altitude value updated.
-            print(board.SENSOR_DATA['altitude'])
+    # Start RC logic in a separate thread
+    rc_thread = threading.Thread(target=rc_logic, daemon=True)
+    rc_thread.start()
 
-# For some msgs there are available specialized methods to read them faster:
-# fast_read_altitude
-# fast_read_imu
-# fast_read_attitude
-# fast_read_analog
-# fast_msp_rc_cmd
-#
-# Notice they all start with "fast_" ;)
+    rc_interval = 0.1  # 10Hz (every 100 ms)
+    next_rc_time = time.time()
+
+    while True:
+        current_time = time.time()
+
+        # Maintain 10Hz consistent send rate
+        if current_time >= next_rc_time:
+            with rc_lock:
+                rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
+                print("RC command sent")
+
+            next_rc_time += rc_interval
+
+        time.sleep(0.005)  # Light polling delay
