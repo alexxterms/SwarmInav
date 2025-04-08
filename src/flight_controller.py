@@ -10,7 +10,7 @@ rc_port = "/dev/ttyUSB0"   # RC control through FC Uart
 baudrate = 115200
 
 # Throw Detection Parameters
-throw_threshold = 15  # Threshold for accel (throw func) In Gs on Y axis
+throw_threshold = 15  # Threshold for accel (throw func) In Gs on Z axis
 altitude_threshold = 2  # Threshold for altitude (throw func) in meters
 
 # Flags and variables
@@ -82,8 +82,8 @@ with MSPy(device=imu_port, baudrate=baudrate) as imu_board, MSPy(device=rc_port,
                     "magnetometer": imu_board.SENSOR_DATA["magnetometer"]
                 }
 
-                scaled_imu = scale_imu_data(raw_imu)  # ✅ Use function from imu_func.py
-                orientation = determine_orientation(scaled_imu)  # ✅ Use function from imu_func.py
+                scaled_imu = scale_imu_data(raw_imu)  
+                orientation = determine_orientation(scaled_imu)  
 
                 print("IMU:", scaled_imu)
                 print("Orientation:", ", ".join(orientation))
