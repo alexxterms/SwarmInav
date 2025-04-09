@@ -17,25 +17,43 @@ altitude_threshold = 2  # Threshold for altitude (throw func) in meters
 throw_detected = False
 previous_altitude = 0
 apogee_reached = False
-arm_sent = False
+arm_check = False
 
 # Shared RC command array
 rc_values = [1500] * 8
 rc_lock = threading.Lock()
 
+# Thread to check arming status every 2 seconds
+def arm_status_checker():
+    global arm_check
+    while True:
+        if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_STATUS']):
+            dataHandler = imu_board.receive_msg()
+            imu_board.process_recv_data(dataHandler)
+
+            flags = imu_board.SENSOR_DATA.get("flag")
+            if flags is not None:
+                armed = bool(flags & 0b00000001)
+                arm_check = armed
+                print("🔍 Drone Armed" if armed else "🔍 Drone Disarmed")
+            else:
+                print("⚠️ Could not find 'flag' in status")
+        time.sleep(2)
+
+
 # RC logic func that will be run in a different thread
 def rc_logic():
-    global throw_detected, arm_sent, rc_values
+    global throw_detected, arm_check, rc_values
     while True:
         with rc_lock:
             #Our throw rc logic
             if throw_detected:
-                if not arm_sent:
+                if not arm_check:
                     rc_values[2] = 885     # Throttle Low before arming(CH3)
                     rc_values[4] = 2000    # Arm (CH5)
                     rc_values[5] = 1000    # Position Hold low  (CH6)
                     rc_values[6] = 1000    # Angle Mode on CH7 always on
-                    arm_sent = True
+                    arm_check = True
                     print("✅ First arm command set")
                     time.sleep(0.1)  # Small delay before increasing throttle
                 else:
@@ -58,6 +76,11 @@ with MSPy(device=imu_port, baudrate=baudrate) as imu_board, MSPy(device=rc_port,
     # Start RC logic in a separate thread
     rc_thread = threading.Thread(target=rc_logic, daemon=True)
     rc_thread.start()
+
+    # Start arming status checker thread
+    arm_status_thread = threading.Thread(target=arm_status_checker, daemon=True)
+    arm_status_thread.start()
+
 
     imu_interval = 0.02   # 50Hz (every 20 ms)
     alt_interval = 0.1    # 10Hz (every 100 ms)
