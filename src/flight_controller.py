@@ -37,6 +37,39 @@ last_rc_time = time.time()
 imu_board = None
 rc_board = None
 
+#get wp didnt test yet
+def get_wp(wp_number=0):
+    global imu_board
+    if imu_board is None:
+        print("❌ IMU board not initialized")
+        return
+
+    # Send WP number
+    imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_WP'], struct.pack('<B', wp_number))
+    dataHandler = imu_board.receive_msg()
+    imu_board.process_recv_data(dataHandler)
+
+    wp_data = imu_board.SENSOR_DATA.get("waypoint")
+
+    # DEBUG: Show raw output first
+    print("📦 Raw Waypoint Data:", wp_data)
+
+    if isinstance(wp_data, dict):
+        wp_num = wp_data.get("wp_no", "N/A")
+        lat = wp_data.get("lat", 0) / 10**7
+        lon = wp_data.get("lon", 0) / 10**7
+        alt_cm = wp_data.get("alt", 0)
+        alt_m = alt_cm / 100
+        flags = wp_data.get("flags", 0)
+
+        print(f"\n📍 Waypoint #{wp_num} Info:")
+        print(f"Latitude: {lat}°")
+        print(f"Longitude: {lon}°")
+        print(f"Altitude: {alt_m} meters")
+        print(f"Flags: {flags}")
+    else:
+        print("⚠️ 'waypoint' not found or not in expected dict format.")
+
 
 # Thread to check arming status every 2 seconds
 def arm_status_checker():
@@ -112,6 +145,7 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
         readIMUData()
         readAltitudeData()
         sendRCCommands()
+        get_wp(17)
         # Sleep for a short duration to avoid busy waiting
         time.sleep(0.01)  # 10ms delay for polling
 
