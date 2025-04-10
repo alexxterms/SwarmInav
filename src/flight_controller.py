@@ -40,7 +40,8 @@ rc_board = None
 
 # Thread to check arming status every 2 seconds
 def arm_status_checker():
-    global arm_check
+    global arm_check, imu_board, rc_board
+
     while True:
         if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_STATUS']):
             dataHandler = imu_board.receive_msg()
@@ -57,7 +58,8 @@ def arm_status_checker():
 
 # RC logic func that will be run in a different thread
 def rc_logic():
-    global throw_detected, arm_check, rc_values
+    global throw_detected, arm_check, rc_values, imu_board, rc_board
+
     while True:
         with rc_lock:
             #Our throw rc logic
@@ -108,14 +110,15 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
 
     while(True):
         # Call the read functions
-        readIMUData(imu_board=imu_board, imu_interval=imu_interval)
-        readAltitudeData(imu_board=imu_board, alt_interval=alt_interval)
-        sendRCCommands(rc_board=rc_board, rc_interval=rc_interval)
+        readIMUData()
+        readAltitudeData()
+        sendRCCommands()
         # Sleep for a short duration to avoid busy waiting
         time.sleep(0.01)  # 10ms delay for polling
 
 #  Read IMU data from the board
-def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
+def readIMUData():
+        global last_imu_time, imu_interval, imu_board, rc_board
         current_time = time.time()
         if current_time - last_imu_time >= imu_interval:
             if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
@@ -142,7 +145,8 @@ def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
             last_imu_time = current_time
 
 #  Read Altitude Data 
-def readAltitudeData(imu_board=imu_board, alt_interval=alt_interval):
+def readAltitudeData():
+        global last_alt_time, alt_interval,  imu_board, rc_board
         current_time = time.time()
         if current_time - last_alt_time >= alt_interval:
             if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_ALTITUDE']):
@@ -163,7 +167,8 @@ def readAltitudeData(imu_board=imu_board, alt_interval=alt_interval):
             last_alt_time = current_time
 
 #  Send RC commands at 10Hz to the board
-def sendRCCommands(rc_board=rc_board, rc_interval=rc_interval):
+def sendRCCommands():
+        global last_rc_time, rc_interval, imu_board, rc_board
         current_time = time.time()
         if current_time - last_rc_time >= rc_interval:
             with rc_lock:
