@@ -174,5 +174,5 @@ def sendRCCommands():
                 rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
                 print("RC command sent")
             last_rc_time = current_time
-            
+
 initializeFlightController()
