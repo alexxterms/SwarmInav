@@ -88,11 +88,11 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
     rc_board = MSPy(device=rc_port, baudrate=rc_baudrate)
 
     # Sanity checking
-    if imu_board.connect(trials=3) and rc_board.connect(trials=3): #will try 3 times to connect
-        print("Both UARTs connected successfully")
+    if imu_board.connect(trials=3) == 0 and rc_board.connect(trials=3) == 0:
+        print("✅ Both UARTs connected successfully")
     else:
-        raise Exception("Failed to connect to one or both serial ports")
-    
+        raise Exception("❌ Failed to connect to one or both serial ports")
+
     #----------------------------------------- XXX -----------------------------------------#
 
 
