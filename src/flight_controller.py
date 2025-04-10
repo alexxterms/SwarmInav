@@ -133,7 +133,7 @@ def readIMUData():
                 scaled_imu = scale_imu_data(raw_imu)  
                 orientation = determine_orientation(scaled_imu)  
 
-                print("IMU:", scaled_imu)
+                #print("IMU:", scaled_imu)
                 print("Orientation:", ", ".join(orientation))
 
                 # Check for Throw Trigger (detecting sudden acceleration spike)
