@@ -59,7 +59,6 @@ def arm_status_checker():
 # RC logic func that will be run in a different thread
 def rc_logic():
     global throw_detected, arm_check, rc_values, imu_board, rc_board
-
     while True:
         with rc_lock:
             #Our throw rc logic
