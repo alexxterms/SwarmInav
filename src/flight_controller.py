@@ -3,7 +3,7 @@ import struct
 import threading
 from yamspy import MSPy
 from imu_func import scale_imu_data, determine_orientation  
-
+# Testing
 # UART Configuration
 imu_port = "/dev/ttyACM0"  # IMU through FC USB C
 rc_port = "/dev/ttyUSB0"   # RC control through FC Uart
@@ -174,5 +174,5 @@ def sendRCCommands():
                 rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
                 print("RC command sent")
             last_rc_time = current_time
-            
+
 initializeFlightController()
