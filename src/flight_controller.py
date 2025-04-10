@@ -55,7 +55,6 @@ def arm_status_checker():
                 print("⚠️ Could not find 'flag' in status")
         time.sleep(2)
 
-
 # RC logic func that will be run in a different thread
 def rc_logic():
     global throw_detected, arm_check, rc_values
@@ -80,9 +79,7 @@ def rc_logic():
                 rc_values[6] = 1000  # Angle mode alwayss
         time.sleep(0.05)  # 20Hz
 
-
 # Call the initialization function
-
 def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_port=rc_port, rc_baudrate=rc_baudrate):
     
     global imu_board, rc_board
@@ -117,7 +114,6 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
         # Sleep for a short duration to avoid busy waiting
         time.sleep(0.01)  # 10ms delay for polling
 
-
 #  Read IMU data from the board
 def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
         current_time = time.time()
@@ -145,9 +141,7 @@ def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
 
             last_imu_time = current_time
 
-
 #  Read Altitude Data 
-
 def readAltitudeData(imu_board=imu_board, alt_interval=alt_interval):
         current_time = time.time()
         if current_time - last_alt_time >= alt_interval:
@@ -177,3 +171,4 @@ def sendRCCommands(rc_board=rc_board, rc_interval=rc_interval):
                 print("RC command sent")
             last_rc_time = current_time
             
+initializeFlightController()
