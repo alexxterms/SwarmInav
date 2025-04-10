@@ -77,15 +77,15 @@ MSPCodes = {
         'MSP_ARMING_DISABLE':             99,
         #'MSP_SET_SPECIAL_PARAMETERS':     99, // DEPRECATED
         #'MSP_IDENT':                      100, // DEPRECTED
-        'MSP_STATUS':                     101,
-        'MSP_RAW_IMU':                    102,
-        'MSP_SERVO':                      103,
-        'MSP_MOTOR':                      104,
-        'MSP_RC':                         105,
-        'MSP_RAW_GPS':                    106,
-        'MSP_COMP_GPS':                   107,
-        'MSP_ATTITUDE':                   108,
-        'MSP_ALTITUDE':                   109,
+        'MSP_STATUS':                     101, // Important
+        'MSP_RAW_IMU':                    102, // Important
+        'MSP_SERVO':                      103, // Important
+        'MSP_MOTOR':                      104, // Important
+        'MSP_RC':                         105, // Important
+        'MSP_RAW_GPS':                    106, // Important
+        'MSP_COMP_GPS':                   107, // Important
+        'MSP_ATTITUDE':                   108, // Important
+        'MSP_ALTITUDE':                   109, // Important
         'MSP_ANALOG':                     110,
         'MSP_RC_TUNING':                  111,
         'MSP_PID':                        112,
@@ -93,7 +93,7 @@ MSPCodes = {
         'MSP_MISC':                       114, # DEPRECATED
         'MSP_BOXNAMES':                   116,
         'MSP_PIDNAMES':                   117,
-        'MSP_WP':                         118, # Not used
+        'MSP_WP':                         118, # Not used  // Important
         'MSP_BOXIDS':                     119,
         'MSP_SERVO_CONFIGURATIONS':       120,
         'MSP_MOTOR_3D_CONFIG':            124,
@@ -103,11 +103,11 @@ MSPCodes = {
 
         'MSP_VOLTAGE_METERS':             128,
         'MSP_CURRENT_METERS':             129,
-        'MSP_BATTERY_STATE':              130,
-        'MSP_MOTOR_CONFIG':               131,
-        'MSP_GPS_CONFIG':                 132,
-        'MSP_COMPASS_CONFIG':             133,
-        'MSP_GPS_RESCUE':                 135,
+        'MSP_BATTERY_STATE':              130, // Important
+        'MSP_MOTOR_CONFIG':               131, // Important
+        'MSP_GPS_CONFIG':                 132, // Important
+        'MSP_COMPASS_CONFIG':             133, // Important
+        'MSP_GPS_RESCUE':                 135, // Important
 
         'MSP_STATUS_EX':                  150,
 
@@ -123,8 +123,8 @@ MSPCodes = {
         'MSP_BEEPER_CONFIG':              184,
         'MSP_SET_BEEPER_CONFIG':          185,
 
-        'MSP_SET_RAW_RC':                 200,
-        'MSP_SET_RAW_GPS':                201, # Not used
+        'MSP_SET_RAW_RC':                 200, // Important
+        'MSP_SET_RAW_GPS':                201, # Not used  // Important
         'MSP_SET_PID':                    202,
         #'MSP_SET_BOX':                    203, // DEPRECATED
         'MSP_SET_RC_TUNING':              204,
@@ -132,7 +132,7 @@ MSPCodes = {
         'MSP_MAG_CALIBRATION':            206,
         'MSP_SET_MISC':                   207, # DEPRECATED
         'MSP_RESET_CONF':                 208,
-        'MSP_SET_WP':                     209, # Not used
+        'MSP_SET_WP':                     209, # Not used  // Important
         'MSP_SELECT_SETTING':             210,
         'MSP_SET_HEADING':                211, # Not used
         'MSP_SET_SERVO_CONFIGURATION':    212,
