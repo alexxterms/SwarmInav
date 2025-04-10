@@ -24,6 +24,20 @@ arm_check = False
 rc_values = [1500] * 8
 rc_lock = threading.Lock()
 
+
+imu_interval = 0.02   # 50Hz (every 20 ms)
+alt_interval = 0.1    # 10Hz (every 100 ms)
+rc_interval = 0.1     # 10Hz (every 100 ms)   VERY IMP 
+
+current_time = time.time()
+last_imu_time = time.time()
+last_alt_time = time.time()
+last_rc_time = time.time()
+
+imu_board = None
+rc_board = None
+
+
 # Thread to check arming status every 2 seconds
 def arm_status_checker():
     global arm_check
@@ -66,52 +80,6 @@ def rc_logic():
                 rc_values[6] = 1000  # Angle mode alwayss
         time.sleep(0.05)  # 20Hz
 
-# This will be one big heck of a non modular code but anyways
-# Open connections using "with" kill me
-#with MSPy(device=imu_port, baudrate=imu_baudrate) as imu_board, MSPy(device=rc_port, baudrate=rc_baudrate) as rc_board:
-#    if imu_board.connect(trials=3) and rc_board.connect(trials=3): #will try 3 times to connect
-#        print("✅ Both UARTs connected successfully")
-#    else:
-#        raise Exception("❌ Failed to connect to one or both serial ports")
-#
-#    # Start RC logic in a separate thread
-#    rc_thread = threading.Thread(target=rc_logic, daemon=True)
-#    rc_thread.start()
-#
-#    # Start arming status checker thread
-#    arm_status_thread = threading.Thread(target=arm_status_checker, daemon=True)
-#    arm_status_thread.start()
-#
-#
-#    imu_interval = 0.02   # 50Hz (every 20 ms)
-#    alt_interval = 0.1    # 10Hz (every 100 ms)
-#    rc_interval = 0.1     # 10Hz (every 100 ms)   VERY IMP 
-#
-#    last_imu_time = time.time()
-#    last_alt_time = time.time()
-#    last_rc_time = time.time()
-#
-#    while True:
-#        current_time = time.time()
-#        time.sleep(0.01)  # 10ms delay for polling
-## Too many print statements i know, will remove it after proper testing
-
-# Let me try refactoring this:
-
-
-# Initialize intervals and timestamps
-def initialize_intervals():
-    global imu_interval, alt_interval, rc_interval
-    global last_imu_time, last_alt_time, last_rc_time, current_time
-
-    imu_interval = 0.02   # 50Hz (every 20 ms)
-    alt_interval = 0.1    # 10Hz (every 100 ms)
-    rc_interval = 0.1     # 10Hz (every 100 ms)   VERY IMP 
-
-    current_time = time.time()
-    last_imu_time = time.time()
-    last_alt_time = time.time()
-    last_rc_time = time.time()
 
 # Call the initialization function
 
@@ -136,24 +104,23 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
     arm_status_thread = threading.Thread(target=arm_status_checker, daemon=True)
 
     #----------------------------------------- XXX -----------------------------------------#
-    initialize_intervals()
-    
+
 
     rc_thread.start()
     arm_status_thread.start()
 
     while(True):
-        current_time = time.time()
         # Call the read functions
-        readIMUData()
-        readAltitudeData()
-        sendRCCommands()
+        readIMUData(imu_board=imu_board, imu_interval=imu_interval)
+        readAltitudeData(imu_board=imu_board, alt_interval=alt_interval)
+        sendRCCommands(rc_board=rc_board, rc_interval=rc_interval)
         # Sleep for a short duration to avoid busy waiting
         time.sleep(0.01)  # 10ms delay for polling
 
 
 #  Read IMU data from the board
 def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
+        current_time = time.time()
         if current_time - last_imu_time >= imu_interval:
             if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_RAW_IMU']):
                 dataHandler = imu_board.receive_msg()
@@ -182,6 +149,7 @@ def readIMUData(imu_board=imu_board, imu_interval=imu_interval):
 #  Read Altitude Data 
 
 def readAltitudeData(imu_board=imu_board, alt_interval=alt_interval):
+        current_time = time.time()
         if current_time - last_alt_time >= alt_interval:
             if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_ALTITUDE']):
                 dataHandler = imu_board.receive_msg()
@@ -200,9 +168,9 @@ def readAltitudeData(imu_board=imu_board, alt_interval=alt_interval):
                 previous_altitude = altitude
             last_alt_time = current_time
 
-#
-        ######################################  Send RC commands at 10Hz  ###################################################
+#  Send RC commands at 10Hz to the board
 def sendRCCommands(rc_board=rc_board, rc_interval=rc_interval):
+        current_time = time.time()
         if current_time - last_rc_time >= rc_interval:
             with rc_lock:
                 rc_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_RAW_RC'], struct.pack('<8H', *rc_values))
