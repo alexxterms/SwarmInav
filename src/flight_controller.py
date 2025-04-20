@@ -209,4 +209,86 @@ def sendRCCommands():
                 print("RC command sent")
             last_rc_time = current_time
 
+
+def set_wp(wp_number, lat, lon, alt_m, action=0, p1=0, p2=0, p3=0, flag=0):
+    """
+    Set a waypoint using MSP_SET_WP
+    
+    Parameters:
+    - wp_number: Waypoint number (0 is home)
+    - lat: Latitude (decimal degrees, will be converted to degrees * 10^7)
+    - lon: Longitude (decimal degrees, will be converted to degrees * 10^7)
+    - alt_m: Altitude in meters (will be converted to centimeters)
+    - action: Waypoint action (0=WAYPOINT, 1=POSHOLD_UNLIM, etc.)
+    - p1, p2, p3: Parameters for the action
+    - flag: Waypoint flags
+    """
+    global imu_board
+    
+    if imu_board is None:
+        print("❌ IMU board not initialized")
+        return False
+    
+    # Convert values to required format
+    lat_int = int(lat * 10**7)
+    lon_int = int(lon * 10**7)
+    alt_cm = int(alt_m * 100)
+    
+    # Pack the data according to MSP_SET_WP format
+    # Format: wp_no, lat, lon, alt, p1, p2, p3, flag
+    data = struct.pack('<BiiHHHHB', 
+                      wp_number,    # waypoint number
+                      lat_int,      # latitude
+                      lon_int,      # longitude
+                      alt_cm,       # altitude in cm 
+                      p1,           # param 1
+                      p2,           # param 2
+                      p3,           # param 3
+                      flag)         # flags
+    
+    # Send the waypoint data
+    if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_SET_WP'], data):
+        print(f"✅ Waypoint #{wp_number} set: {lat}°, {lon}°, {alt_m}m")
+        return True
+    else:
+        print("❌ Failed to set waypoint")
+        return False
+    
+
+def setup_waypoint_mission():
+        """Setup a basic waypoint mission"""
+        
+        # Set home position (WP 0 is always home)
+        set_wp(0, 47.123456, 8.654321, 10, 1)  # Home position
+        
+        # Add waypoints in sequence
+        set_wp(1, 47.123556, 8.654421, 15, 0)  # First waypoint at 15m altitude
+        set_wp(2, 47.123656, 8.654521, 20, 0)  # Second waypoint at 20m altitude
+        set_wp(3, 47.123456, 8.654321, 10, 0)  # Return to home coordinates
+        
+        # Set mission size (number of waypoints)
+        set_mission_count(3)  # 3 waypoints (not counting home)
+        
+        print("✅ Waypoint mission created")
+
+def set_mission_count(count):
+    """Set the number of waypoints in the mission"""
+    global imu_board
+    
+    if imu_board is None:
+        print("❌ IMU board not initialized")
+        return False
+    
+    # Pack data: first byte is the waypoint count
+    data = struct.pack('<B', count)
+    
+    # Send mission count
+    if imu_board.send_RAW_msg(MSPy.MSPCodes['MSP_WP_MISSION_SAVE'], data):
+        print(f"✅ Mission set with {count} waypoints")
+        return True
+    else:
+        print("❌ Failed to set mission count")
+        return False
+    
+
 initializeFlightController()
