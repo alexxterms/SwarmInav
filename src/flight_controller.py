@@ -38,7 +38,7 @@ imu_board = None
 rc_board = None
 
 #get wp didnt test yet
-def get_wp(wp_number=0):
+def get_wp(wp_number=4):
     global imu_board
     if imu_board is None:
         print("❌ IMU board not initialized")
@@ -108,6 +108,15 @@ def rc_logic():
                     rc_values[2] = 1300     # Increase Throttle after arming
                     rc_values[5] = 2000    # Position Hold ON (CH6)
                     print("🚀 Autonomous RC command updated")
+
+
+                    # Entering waypoint mode in 1 second (1S for drone to stabilise)
+                    time.sleep(1)
+                    rc_values[5] = 1750 # Waypointing is at 1500 
+
+
+
+
             else:
                 rc_values = [1500] * 8  # Neutral values for manual mode
                 rc_values[6] = 1000  # Angle mode alwayss
@@ -145,7 +154,12 @@ def initializeFlightController(imu_port=imu_port, imu_baudrate=imu_baudrate, rc_
         readIMUData()
         readAltitudeData()
         sendRCCommands()
-        get_wp(17)
+        get_wp(0)  # Get home waypoint data
+        get_wp(1)  # Get first waypoint data
+        get_wp(2)  # Get second waypoint data
+        get_wp(3)  # Get third waypoint data
+        get_wp(4)  # Get fourth waypoint data
+        
         # Sleep for a short duration to avoid busy waiting
         time.sleep(0.01)  # 10ms delay for polling
 
@@ -209,7 +223,6 @@ def sendRCCommands():
                 print("RC command sent")
             last_rc_time = current_time
 
-
 def set_wp(wp_number, lat, lon, alt_m, action=0, p1=0, p2=0, p3=0, flag=0):
     """
     Set a waypoint using MSP_SET_WP
@@ -253,7 +266,6 @@ def set_wp(wp_number, lat, lon, alt_m, action=0, p1=0, p2=0, p3=0, flag=0):
     else:
         print("❌ Failed to set waypoint")
         return False
-    
 
 def setup_waypoint_mission():
         """Setup a basic waypoint mission"""
